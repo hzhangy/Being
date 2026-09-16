@@ -1,16 +1,18 @@
-#!/usr/bin/env python3
 """
 area_law_C8.py
 
-验证：C8 密铺中，球面 r 处的节点数 ∝ r²。
+Numerical verification of the spherical shell area law:
+the node capacity N(r) of the L1 wavefront shell grows as r².
 
-这是黑洞熵 S = A/4 的微观来源，也是 L 论文"空间是 2D 球面"的关键证据。
+This is the graph-theoretic origin of the Bekenstein-Hawking
+entropy formula S = A/4, and the microscopic basis for the
+2D spherical shell foliation of Volume V'.
 
-论证：
-  1. 在 C8 立方格子上从中心节点做 BFS
-  2. 按图距离 r 计数节点数
-  3. 检查 N(r) 是否按 r² 增长
-  4. 同时计算球面上"面积"与节点数的比值
+Method:
+  1. BFS on the C8 bookkeeping lattice from the center node.
+  2. Count nodes at each graph distance r.
+  3. Verify N(r) = 4r² + 2 exactly.
+  4. Compare with the Euclidean sphere area 4πr².
 """
 
 import numpy as np
@@ -18,10 +20,10 @@ from collections import deque
 
 
 def build_cubic_lattice(L):
-    """构建 L×L×L 的 C8 立方格子"""
+    """Build the L×L×L C8 bookkeeping lattice (with a 2L+1 side to avoid boundary effects)."""
     size = 2 * L + 1
     center = L
-    # 邻接表
+    # Adjacency list
     adj = {}
     for i in range(size):
         for j in range(size):
@@ -36,7 +38,7 @@ def build_cubic_lattice(L):
 
 
 def bfs_count(adj, start):
-    """BFS：返回每个距离 r 的节点数"""
+    """BFS: return the node count at each graph distance r."""
     visited = {start}
     queue = deque([(start, 0)])
     counts = {}
@@ -68,11 +70,11 @@ def main():
     print(f"  Max graph distance: {max_r}")
     print()
     
-    # 打印 r, N(r), 4r²+2, 比值
+    # Print r, N(r), 4r²+2, ratio
     print(f"  {'r':>4} | {'N(r)':>8} | {'4r²+2':>8} | {'N(r)/(4r²+2)':>14} | {'N(r)/r²':>10}")
     print("  " + "-" * 60)
     
-    # L1 球面精确公式：N(r) = 4r²+2（对 r ≥ 1）
+    # L1 sphere exact formula: N(r) = 4r² + 2 (for r ≥ 1)
     for r in range(1, min(20, max_r + 1)):
         n_r = counts.get(r, 0)
         theory = 4 * r * r + 2
@@ -82,7 +84,7 @@ def main():
     
     print()
     
-    # 拟合 N(r) = a·r² + b
+    # Fit N(r) = a·r² + b
     rs = np.array([r for r in range(5, min(25, max_r + 1))])
     ns = np.array([counts.get(r, 0) for r in rs])
     
@@ -99,9 +101,9 @@ def main():
     print(f"  R² = {r2:.10f}")
     print()
     
-    # 与 4πr² 的比例（球面面积）
+    # Ratio to 4πr² (Euclidean sphere area)
     print("  ─── N(r) / (4πr²) ───")
-    print("  (球面面积比：如果空间是 2D 球面，N(r) 应与 4πr² 成正比)")
+    print("  (Sphere area ratio: if the wavefront is a 2D shell, N(r) ∝ 4πr²)")
     print()
     print(f"  {'r':>4} | {'N(r)':>8} | {'4πr²':>12} | {'N(r)/(4πr²)':>14}")
     print("  " + "-" * 50)
@@ -113,13 +115,15 @@ def main():
     
     print()
     
-    # 结论
+    # Conclusion
     print("  ─── Conclusion ───")
     if abs(a_fit - 4.0) < 0.01 and r2 > 0.999:
         print("  ✓ AREA LAW VERIFIED")
         print(f"  N(r) = 4r² + 2 exactly (on finite lattice)")
-        print(f"  Node density on sphere ∝ r²: matches C8 cubic tiling")
-        print(f"  This is the microscopic origin of S = A/4.")
+        print(f"  Node capacity on shell grows as r²: matches the")
+        print(f"  holographic wavefront of the weak-force causal")
+        print(f"  expansion (B', Section 12).")
+        print(f"  This is the graph-theoretic origin of S = A/4.")
     else:
         print(f"  ✗ Fit deviates: a = {a_fit:.4f}")
     
